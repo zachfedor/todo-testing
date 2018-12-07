@@ -1,10 +1,20 @@
 const {
   addItem,
   completeItem,
+  addItemHandler,
   showList,
+  init,
 } = require('./main');
 
-describe('Todo Item', () => {
+beforeEach(() => {
+  // reset the document
+  document.body.innerHTML = '';
+});
+
+/**
+ * Unit Tests
+ */
+describe('addItem', () => {
   test('should be appended to existing items', () => {
     // list should have one thing
     let list = [{ name: 'do homework', done: false }];
@@ -18,12 +28,10 @@ describe('Todo Item', () => {
     expect(list[1].name).toBe(item);
     expect(list[1].done).toBe(false);
   });
-
-  // sanitize input
 });
 
-describe('Completing Items', () => {
-  test('an undone item should be marked as complete', () => {
+describe('completeItem', () => {
+  test('should mark a single item as complete', () => {
     let list = [{ name: 'do homework', done: false }];
 
     list = completeItem(0, list);
@@ -31,7 +39,7 @@ describe('Completing Items', () => {
     expect(list[0].done).toBe(true);
   });
 
-  test('an already completed item shouldn\'t change', () => {
+  test('should not change a completed item', () => {
     let list = [{ name: 'do homework', done: true }];
 
     list = completeItem(0, list);
@@ -40,17 +48,21 @@ describe('Completing Items', () => {
   });
 });
 
-describe('Rendering Todos', () => {
-  test('given a list, change the DOM to show the list', () => {
-    // create unordered list
+
+/**
+ * Integration Tests
+ */
+describe('showList', () => {
+  test('should render an <li> for each todo item', () => {
+    // setup
     const ulEl = document.createElement('ul');
     document.body.appendChild(ulEl);
-
     const list = [{
       name: 'do homework', done: false,
     }, {
       name: 'do chores', done: true,
-    }]
+    }];
+
     // render the list
     showList(list);
 
@@ -64,14 +76,44 @@ describe('Rendering Todos', () => {
   });
 });
 
+describe('addItemHandler', () => {
+  test('should get text from a form input, update state, and run showList', () => {
+    // setup
+    const mockEvent = {
+      preventDefault: () => {},
+      target: [{ value: 'go get milk' }],
+    };
+    const ulEl = document.createElement('ul');
+    document.body.appendChild(ulEl);
+    expect(document.querySelectorAll('li').length).toBe(0);
 
+    // call the event handler with a fake event object
+    addItemHandler(mockEvent);
 
+    expect(document.querySelectorAll('li').length).toBe(1);
+  });
+})
 
+describe('init', () => {
+  test('should add form and initial empty ul', () => {
+    // document should be empty
+    expect(document.body.firstChild).toBeNull();
 
+    // run the setup function
+    init();
 
+    // check todo list
+    const ulEl = document.querySelector('ul');
+    expect(ulEl).not.toBeNull();
+    expect(ulEl.firstChild).toBeNull();
 
+    // check form
+    expect(document.querySelector('form')).not.toBeNull();
 
-
-
-
-
+    // check form inputs
+    const inputEls = document.querySelectorAll('input');
+    expect(inputEls.length).toBe(2);
+    expect(inputEls[0].type).toBe('text');
+    expect(inputEls[1].type).toBe('submit');
+  });
+})
